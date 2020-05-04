@@ -36,7 +36,7 @@ const folderToClean = ['./' + staticFolder + '/*', './var/view_preprocessed/*'];
  * Lint less files (excludes _module.less - see config/stylelint.js)
  */
 gulp.task('less:lint', function lintCssTask() {
-  const filesToLint = `app/design/frontend/${theme.vendor}/${theme.name}/**/*.less`;
+  const filesToLint = `app/design/frontend/${theme.vendor}/${theme.name}/**/*.${theme.lang}`;
 
   return gulp
     .src(filesToLint)
@@ -319,7 +319,7 @@ gulp.task('deploy:admin', () => {
  */
 gulp.task('watch', () => {
   gulp.watch(
-      [`pub/static/frontend/${theme.vendor}/${theme.name}/**/*.less`],
+      [`pub/static/frontend/${theme.vendor}/${theme.name}/**/*.${theme.lang}`],
       gulp.series('less')
   );
 });
