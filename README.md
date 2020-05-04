@@ -114,6 +114,8 @@ Lint less files:
 
 Compile less to CSS:
 
+> Note: before less:compile use gulp source to deploy source-theme
+
 	gulp less:compile [--theme-alias]
 
 Alias for less:lint and less:compile sequence:

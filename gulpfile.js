@@ -11,12 +11,13 @@ const gulp = require('gulp'),
   clean = require('gulp-clean'),
   run = require('gulp-run'),
   browserSync = require('browser-sync').create(),
-  sourcemap = require('gulp-sourcemaps'),
+  sourcemaps = require('gulp-sourcemaps'),
   stylelint = require('gulp-stylelint'),
   eslint = require('gulp-eslint'),
   image = require('gulp-image'),
   imageResize = require('gulp-image-resize'),
-  parseArgs = require('minimist');
+  parseArgs = require('minimist'),
+  autoprefixer = require('gulp-autoprefixer');
 
 /* Configs */
 const themesConfig = require('./dev/tools/gulp/configs/themes'),
@@ -53,22 +54,24 @@ gulp.task('less:lint', function lintCssTask() {
 /**
  * Compile less
  */
+
 gulp.task('less:compile', () => {
   const filesToCompile = theme.files.map((file) => {
     return (
-      `pub/static/frontend/${theme.vendor}/${theme.name}/${theme.locale}/${file}.less`
+      `${staticFolder}/${file}.${theme.lang}`
     );
   });
 
   return gulp
     .src(filesToCompile)
-    .pipe(sourcemap.init())
+    .pipe(sourcemaps.init())
     .pipe(
       less().on('error', (error) => {
         log(chalk.red(`Error compiling ${theme.vendor}/${theme.name}: ${error.message}`));
       })
     )
-    .pipe(sourcemap.write())
+    .pipe(autoprefixer('last 4 versions'))
+    .pipe(sourcemaps.write())
     .pipe(gulp.dest(staticFolder + '/css'))
     .pipe(browserSync.stream())
     .on('end', () => {
@@ -149,7 +152,7 @@ gulp.task('image:media:optimize', function (done) {
   done();
 });
 
-/** 
+/**
  * Resize specific images
  * @input {string} - specify input blob
  * @output {string} - specify output folder, defaults to pub/media/resized
@@ -191,7 +194,7 @@ gulp.task('image:resize', function (done) {
     if (!options.height) {
       log(chalk.red('Please specify new image dimensions'));
       done();
-  
+
       return;
     }
   }
@@ -314,14 +317,10 @@ gulp.task('deploy:admin', () => {
 /**
  * Watch for changes
  */
-gulp.task('serve', () => {
-  browserSync.init({
-    proxy: browserConfig.proxy,
-  });
-
-  return gulp.watch(
-    [`pub/static/frontend/${theme.vendor}/${theme.name}/**/*.less`],
-    gulp.series('less')
+gulp.task('watch', () => {
+  gulp.watch(
+      [`pub/static/frontend/${theme.vendor}/${theme.name}/**/*.less`],
+      gulp.series('less')
   );
 });
 
@@ -331,7 +330,4 @@ gulp.task('serve', () => {
 gulp.task('less', gulp.series('less:lint', 'less:compile'));
 gulp.task('js', gulp.series('js:lint'));
 gulp.task('refresh', gulp.series('clean:static', 'source', 'less'));
-gulp.task(
-  'theme',
-  gulp.series('clean:cache', 'clean:static', 'source', 'less', 'serve')
-);
+gulp.task('theme', gulp.series('clean:cache', 'clean:static', 'source', 'less', 'watch'));
